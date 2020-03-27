@@ -3,19 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package jave.corona.nagl;
+package k22.k22_3.k22_3_1;
 
 /**
  *
  * @author user
  */
-public class JaveCoronaNagl {
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
-    }
+public class MyThread2204 {
     
 }
