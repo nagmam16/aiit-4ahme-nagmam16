@@ -1,9 +1,5 @@
 package jsontutorial;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -62,9 +58,6 @@ public class Employee {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
-    
-    
-    
     
     @Override
     public String toString() {
