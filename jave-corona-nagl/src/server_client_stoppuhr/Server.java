@@ -76,23 +76,33 @@ class ConnectionHandler implements Runnable {
 
     @Override
     public void run() {
-        BufferedReader reader = new BufferedReader(new InputStream());
-        
-        String line;
         try{
+            BufferedReader reader = new BufferedReader(new InputStream(socket.getInputStream()));
+            String line;
             line = reader.readLine();
-        } catch(Exception ex) {
-            throw new IllegalArgumentException();
-        }
 
-        Gson gson = new Gson(); 
-        gson.toJson(line);
-        
-        for(int i = 0; i < handlers.size; i++){
-            if() {
-                master = true;
-                
+            Gson gson = new Gson(); 
+            gson.toJson(line);
+
+            Request req = gson.fromJson(line, Request.class);
+
+
+
+            if(req.isMaster()) {
+                for(ConnectionHandler c : handlers){
+                    this.master = true;
+                    if( c != this && c.isMaster() == true){
+                        this.master = false;
+                    }
+                }     
             }
+
+            if(req.isStart()){
+                startMillis = System.currentTimeMillis();
+            }
+        
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
