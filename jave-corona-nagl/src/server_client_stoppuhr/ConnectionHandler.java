@@ -1,4 +1,4 @@
-package Server_Client.Stoppuhr;
+package server_client_stoppuhr;
 
 import com.google.gson.Gson;
 import java.io.BufferedReader;
