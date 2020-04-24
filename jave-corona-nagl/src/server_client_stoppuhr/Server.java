@@ -1,6 +1,9 @@
 package server_client_stoppuhr;
 
+import com.google.gson.Gson;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -33,28 +36,64 @@ public class Server {
     }
 
     public long getTimerMillis() {
-        return startMillis;
-    }
-    
-    public void main(String[] args) throws IOException {
-        serverSocket = new ServerSocket(8080);
-        timeOffset = 0;
-        startMillis = System.currentTimeMillis();
-        
-        
-        if(startMillis > 0) {
-           timeOffset = getTimerMillis();
-           startMillis = 0;
+        if(startMillis == 0) {
+           return timeOffset;
         }
         
-        
-        long time;
-        if(startMillis > 0){
-            time = timeOffset + (System.currentTimeMillis() - startMillis);
-        } else {
-            time = timeOffset;
-        }
+        return timeOffset + (System.currentTimeMillis() - startMillis);
     }
     
+    public static void main(String[] args) throws IOException {
+        final Server server = new Server();
+        server.start(8080);
+    }
+}
+
+
+class ConnectionHandler implements Runnable {
+    Server server = new Server();
+    private Socket socket;
+    private boolean master;
+
+    public ConnectionHandler(Socket socket) {
+        
+        
+        
+        
+        this.socket = socket;
+    }
+
+    public boolean isClosed() throws IOException {
+        if(!socket.isConnected()){
+            socket.close();
+        }
+        return socket.isClosed();
+    }
     
+    public boolean isMaster() {
+        return master;
+    }
+
+    @Override
+    public void run() {
+        BufferedReader reader = new BufferedReader(new InputStream());
+        
+        String line;
+        try{
+            line = reader.readLine();
+        } catch(Exception ex) {
+            throw new IllegalArgumentException();
+        }
+
+        Gson gson = new Gson(); 
+        gson.toJson(line);
+        
+        for(int i = 0; i < handlers.size; i++){
+            if() {
+                master = true;
+                
+            }
+        }
+    }
+
 }
