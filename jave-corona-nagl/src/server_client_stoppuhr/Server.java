@@ -1,6 +1,5 @@
 package server_client_stoppuhr;
 
-import server_client_stoppuhr.ConnectionHandler;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
