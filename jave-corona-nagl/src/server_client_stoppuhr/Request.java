@@ -50,8 +50,4 @@ public class Request {
     public void setEnd(boolean end) {
         this.end = end;
     }
-    
-    
-    
-    
 }

@@ -8,7 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
-
 /**
  *
  * @author Nagl
@@ -22,14 +21,17 @@ public class Server {
     
     public void start(int port) throws IOException{
         serverSocket = new ServerSocket(port);
+	timeOffset = 0;
         
-        while(handlers.size() <= 3){
+        while(true){ //damit nur 3 verbindungen gleichzeitig verbunden sind // eine vierte wird nicht zugelassen
             final Socket clientSocket = serverSocket.accept();
-            final ConnectionHandler handler = new ConnectionHandler(clientSocket);
-            
-	    new Thread(handler).start();
-	    
-            handlers.add(handler);
+            if(handlers.size() < 3){ // prüfen ob 3 Verbindungen vorhanden
+		final ConnectionHandler handler = new ConnectionHandler(clientSocket);
+                new Thread(handler).start(); //hintergrund Thread
+		handlers.add(handler);
+            } else {
+		clientSocket.close();
+            }
         }
     }
     
@@ -53,9 +55,8 @@ public class Server {
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-    class ConnectionHandler implements Runnable {
-	Server server = new Server(); // neues Sever Object
-	private Socket socket;
+    private class ConnectionHandler implements Runnable {
+	private final Socket socket;
 	private boolean master;
 
 	public ConnectionHandler(Socket socket) {
@@ -76,46 +77,48 @@ public class Server {
 	@Override
 	public void run() {
 	    try{
+		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		String line;
-		line = reader.readLine();
+		line = reader.readLine(); // zeichen werden in das attribut line gespeichert
 
 		Gson gson = new Gson(); 
-		gson.toJson(line);
-
-		Request r = gson.fromJson(line, Request.class);
-
-
+		gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
+		Request r = gson.fromJson(line, Request.class); //neues Request Object, welches die Zeichen beinhaltet
 
 		if(r.isMaster()) {
 		    for(ConnectionHandler c : handlers){
 			this.master = true;
 			if( c != this && c.isMaster() == true){
 			    this.master = false;
-			} else {
-			    this.master = true;
-			}
+			    break;
 		    }     
 		}
-
-		if(r.isStart()) {
-		    startMillis = System.currentTimeMillis();
+		
+		if(this.master == true) {
+		    if(r.isStart()) {
+			startMillis = System.currentTimeMillis();
+		    }
+		    if(r.isClear()) {
+			if(isTimerRunning()) {
+			    startMillis = System.currentTimeMillis();
+			}
+			timeOffset = 0;
+		    }
+		    if(r.isStop()) {
+			timeOffset = getTimerMillis();
+			startMillis = 0;
+		    }
+		    if(r.isEnd()) {
+			serverSocket.close(); 
+			socket.close();
+			handlers.remove(this);
+		    }
 		}
-		if(r.isClear()) {
-		    timeOffset = 0;
-		}
-		if(r.isStop()) {
-		    startMillis = 0;
-		}
-		if(r.isEnd()) {
-		    socket.close();
-		    handlers.remove(this);
-		}
-
-	    } catch (Exception ex) {
-		ex.printStackTrace();
 	    }
+	} catch (Exception ex) {
+	    ex.printStackTrace();
 	}
-
+    }
     }
 }
