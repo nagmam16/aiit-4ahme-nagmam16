@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Server {
     private ServerSocket serverSocket;
-    final List<ConnectionHandler> handlers = new LinkedList<>();
+    private final List<ConnectionHandler> handlers = new LinkedList<>();
     private long timeOffset;
     private long startMillis;
     
@@ -29,6 +29,13 @@ public class Server {
 		final ConnectionHandler handler = new ConnectionHandler(clientSocket);
                 new Thread(handler).start(); //hintergrund Thread
 		handlers.add(handler);
+		
+		for(int i = 0; i < 3; i++){//drei aktive verbindungen?
+		    if(!clientSocket.isConnected()){
+			clientSocket.close();
+		    }
+		}
+		
             } else {
 		clientSocket.close();
             }
@@ -43,12 +50,11 @@ public class Server {
         if(startMillis == 0) {
            return timeOffset;
         }
-        
-        return timeOffset + (System.currentTimeMillis() - startMillis);
+        return timeOffset + (System.currentTimeMillis() - startMillis); //aktuelle zeit
     }
     
     public static void main(String[] args) throws IOException {
-        final Server server = new Server();
+        final Server server = new Server(); // neuer server
         server.start(8080);
     }
 
@@ -64,9 +70,6 @@ public class Server {
 	}
 
 	public boolean isClosed() throws IOException {
-	    if(!socket.isConnected()){
-		socket.close();
-	    }
 	    return socket.isClosed();
 	}
 
@@ -76,49 +79,69 @@ public class Server {
 
 	@Override
 	public void run() {
-	    try{
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		String line;
-		line = reader.readLine(); // zeichen werden in das attribut line gespeichert
+	    //synchronisation fehlt noch
+	    int count = 0;
+	    
+	    while(true){
+		try{
 
-		Gson gson = new Gson(); 
-		gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
-		Request r = gson.fromJson(line, Request.class); //neues Request Object, welches die Zeichen beinhaltet
+		    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		    final String line = reader.readLine(); // zeichen werden in das attribut line gespeichert
+		    
+		    
+		    Gson gson = new Gson(); 
+		    gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
+		    final Request r = gson.fromJson(line, Request.class); //neues Request Object, welches die Zeichen beinhaltet
 
-		if(r.isMaster()) {
-		    for(ConnectionHandler c : handlers){
-			this.master = true;
-			if( c != this && c.isMaster() == true){
-			    this.master = false;
-			    break;
-		    }     
-		}
-		
-		if(this.master == true) {
-		    if(r.isStart()) {
-			startMillis = System.currentTimeMillis();
-		    }
-		    if(r.isClear()) {
-			if(isTimerRunning()) {
-			    startMillis = System.currentTimeMillis();
+		    final Gson gsonrsp = new Gson();
+		    Response rsp = gsonrsp.fromJson(line, Response.class);//response objekt erstellt und unten zurückgesendet
+		    count++;
+		    rsp.setCount(count);//wie viele response gesendet wurden
+
+		    if(r.isMaster()) {
+			synchronized(handlers){
+			    for(ConnectionHandler c : handlers){
+				this.master = true;
+				if( c != this && c.isMaster() == true){
+				    this.master = false;
+				    break;
+				}
+			    }
 			}
-			timeOffset = 0;
 		    }
-		    if(r.isStop()) {
-			timeOffset = getTimerMillis();
-			startMillis = 0;
+
+		    if(this.master == true) {
+			rsp.setMaster(true);
+			//Respone objekt zurücksenden
+			if(r.isStart()) {
+			    startMillis = System.currentTimeMillis();
+			    rsp.setRunning(true);
+			}
+			if(r.isClear()) {
+			    if(isTimerRunning()) {
+				startMillis = System.currentTimeMillis();
+			    }
+			    timeOffset = 0;
+			    rsp.setRunning(true);
+			    rsp.setTime(0);
+			}
+			if(r.isStop()) {
+			    timeOffset = getTimerMillis();
+			    startMillis = 0;
+			    rsp.setTime(timeOffset);
+			    rsp.setRunning(false);
+			}
+			if(r.isEnd()) {
+			    serverSocket.close(); 
+			    socket.close();
+			    handlers.remove(this);
+			}
 		    }
-		    if(r.isEnd()) {
-			serverSocket.close(); 
-			socket.close();
-			handlers.remove(this);
-		    }
+		} catch (Exception ex) {
+		    ex.printStackTrace();
 		}
-	    }
-	} catch (Exception ex) {
-	    ex.printStackTrace();
+	    } 
+	    
 	}
-    }
     }
 }
