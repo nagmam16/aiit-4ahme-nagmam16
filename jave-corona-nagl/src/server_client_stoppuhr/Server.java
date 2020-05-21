@@ -88,6 +88,10 @@ public class Server {
 		    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		    final String line = reader.readLine(); // zeichen werden in das attribut line gespeichert
 		    
+		    if(line == null){
+			socket.close();
+			break;
+		    }
 		    
 		    Gson gson = new Gson(); 
 		    gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
@@ -134,7 +138,11 @@ public class Server {
 			if(r.isEnd()) {
 			    serverSocket.close(); 
 			    socket.close();
+			    synchronized(socket){
+				
+			    }
 			    handlers.remove(this);
+			    return;
 			}
 		    }
 		} catch (Exception ex) {
