@@ -186,27 +186,27 @@ public class Client extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButConnectionActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButConnectionActionPerformed
 
     private void jButDisconnnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButDisconnnectActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButDisconnnectActionPerformed
 
     private void jButStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStartActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButStartActionPerformed
 
     private void jButStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStopActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButStopActionPerformed
 
     private void jButClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButClearActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButClearActionPerformed
 
     private void jButEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButEndActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButEndActionPerformed
 
     /**
