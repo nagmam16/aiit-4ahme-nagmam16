@@ -5,40 +5,54 @@ package server_client_stoppuhr;
  * @author Nagl
  */
 public class Response {
-    private boolean master;
+    private Boolean master;
     private long count;
-    private boolean running;
+    private Boolean running;
     private long time;
 
-    public boolean isMaster() {
-        return master;
+    public Response(Boolean master, long count, Boolean running, long time) {
+	this.master = master;
+	this.count = count;
+	this.running = running;
+	this.time = time;
     }
 
-    public void setMaster(boolean master) {
-        this.master = master;
+    
+    public boolean isMaster() {
+        return master != null && master;
     }
 
     public long getCount() {
         return count;
     }
 
-    public void setCount(long count) {
-        this.count = count;
-    }
-
     public boolean isRunning() {
-        return running;
-    }
-
-    public void setRunning(boolean running) {
-        this.running = running;
+        return running != null && running;
     }
 
     public long getTime() {
         return time;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setMaster(Boolean master) {
+	this.master = master;
     }
+
+    public void setCount(long count) {
+	this.count = count;
+    }
+
+    public void setRunning(Boolean running) {
+	this.running = running;
+    }
+
+    public void setTime(long time) {
+	this.time = time;
+    }
+
+    @Override
+    public String toString() {
+	return "Response{" + "master=" + master + ", count=" + count + ", running=" + running + ", time=" + time + '}';
+    }
+    
 }

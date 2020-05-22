@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -25,20 +26,22 @@ public class Server {
         
         while(true){ //damit nur 3 verbindungen gleichzeitig verbunden sind // eine vierte wird nicht zugelassen
             final Socket clientSocket = serverSocket.accept();
-            if(handlers.size() < 3){ // prüfen ob 3 Verbindungen vorhanden
-		final ConnectionHandler handler = new ConnectionHandler(clientSocket);
-                new Thread(handler).start(); //hintergrund Thread
-		handlers.add(handler);
-		
-		for(int i = 0; i < 3; i++){//drei aktive verbindungen?
-		    if(!clientSocket.isConnected()){
-			clientSocket.close();
+	    synchronized(handlers) {
+		if(handlers.size() < 3){ // prüfen ob 3 Verbindungen vorhanden
+		    final ConnectionHandler handler = new ConnectionHandler(clientSocket);
+		    new Thread(handler).start(); //hintergrund Thread
+		    handlers.add(handler);
+
+		    for(int i = 0; i < 3; i++){//drei aktive verbindungen?
+			if(!clientSocket.isConnected()){
+			    clientSocket.close();
+			}
 		    }
-		}
 		
-            } else {
-		clientSocket.close();
-            }
+		} else {
+		    clientSocket.close();
+		}
+	    }
         }
     }
     
@@ -80,32 +83,32 @@ public class Server {
 	@Override
 	public void run() {
 	    //synchronisation fehlt noch
-	    int count = 0;
+	    long count = 0;
 	    
 	    while(true){
 		try{
 
 		    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		    final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
 		    final String line = reader.readLine(); // zeichen werden in das attribut line gespeichert
 		    
 		    if(line == null){
 			socket.close();
 			break;
 		    }
+		    count++;
 		    
 		    Gson gson = new Gson(); 
 		    gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
 		    final Request r = gson.fromJson(line, Request.class); //neues Request Object, welches die Zeichen beinhaltet
-
-		    final Gson gsonrsp = new Gson();
-		    Response rsp = gsonrsp.fromJson(line, Response.class);//response objekt erstellt und unten zurückgesendet
-		    count++;
-		    rsp.setCount(count);//wie viele response gesendet wurden
-
+		    System.out.println(r);
+		    
+		   
 		    if(r.isMaster()) {
 			synchronized(handlers){
+			    this.master = true;
 			    for(ConnectionHandler c : handlers){
-				this.master = true;
+				//this.master = true;
 				if( c != this && c.isMaster() == true){
 				    this.master = false;
 				    break;
@@ -114,26 +117,20 @@ public class Server {
 			}
 		    }
 
-		    if(this.master == true) {
-			rsp.setMaster(true);
+		    if(this.master) {
 			//Respone objekt zurücksenden
 			if(r.isStart()) {
 			    startMillis = System.currentTimeMillis();
-			    rsp.setRunning(true);
 			}
 			if(r.isClear()) {
 			    if(isTimerRunning()) {
 				startMillis = System.currentTimeMillis();
 			    }
 			    timeOffset = 0;
-			    rsp.setRunning(true);
-			    rsp.setTime(0);
 			}
 			if(r.isStop()) {
 			    timeOffset = getTimerMillis();
 			    startMillis = 0;
-			    rsp.setTime(timeOffset);
-			    rsp.setRunning(false);
 			}
 			if(r.isEnd()) {
 			    serverSocket.close(); 
@@ -145,6 +142,12 @@ public class Server {
 			    return;
 			}
 		    }
+		    
+		    final Response rsp = new Response(master , count, isTimerRunning(), getTimerMillis());
+		    final String resp = gson.toJson(rsp);
+		    writer.write(resp);
+		    writer.flush();
+		    
 		} catch (Exception ex) {
 		    ex.printStackTrace();
 		}

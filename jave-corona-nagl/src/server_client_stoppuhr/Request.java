@@ -50,4 +50,11 @@ public class Request {
     public void setEnd(boolean end) {
         this.end = end;
     }
+
+    @Override
+    public String toString() {
+	return "Request{" + "master=" + master + ", start=" + start + ", stop=" + stop + ", clear=" + clear + ", end=" + end + '}';
+    }
+    
+    
 }
