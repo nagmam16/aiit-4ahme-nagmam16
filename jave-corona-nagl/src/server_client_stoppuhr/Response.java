@@ -17,6 +17,9 @@ public class Response {
 	this.time = time;
     }
 
+    Response() {
+    }
+
     
     public boolean isMaster() {
         return master != null && master;

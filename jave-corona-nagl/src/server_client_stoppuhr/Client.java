@@ -1,21 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package server_client_stoppuhr;
 
 /**
  *
- * @author user
+ * @author Nagl
  */
 public class Client extends javax.swing.JFrame {
 
+    Server server = new Server();
+    Request req = new Request();
+    
     /**
      * Creates new form Client
      */
     public Client() {
 	initComponents();
+	
+	setTitle("PLF3- Stopwatch");
+	setLocationRelativeTo(this);
+	//setMinimumSize(400,400);
+	
+	jButClear.setEnabled(true);
+	jButDisconnnect.setEnabled(true);
+	jButStart.setEnabled(true);
+	jButStop.setEnabled(true);
+	jButEnd.setEnabled(true);
+	
     }
 
     /**
@@ -186,27 +195,52 @@ public class Client extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButConnectionActionPerformed
-        
+        //Verbindung zu server herstellen
+	// if ( resppnse = master) { dann soll eine verbingun aufgebaut werden )
+	Response res = new Response();
+	jButDisconnnect.setEnabled(false);
+	
+	if (res.isMaster() == true){
+	    try {
+		server.start(8080);
+	    } catch (Exception ex) {
+		ex.printStackTrace();
+	    }
+	    jButStart.setEnabled(false);
+	    jButEnd.setEnabled(false);
+	}
     }//GEN-LAST:event_jButConnectionActionPerformed
 
     private void jButDisconnnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButDisconnnectActionPerformed
-        
+        //Verbindug trennen
+	
+	jButClear.setEnabled(true);
+	jButDisconnnect.setEnabled(true);
+	jButStart.setEnabled(true);
+	jButStop.setEnabled(true);
+	jButEnd.setEnabled(true);
     }//GEN-LAST:event_jButDisconnnectActionPerformed
 
     private void jButStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStartActionPerformed
-        
+	//Stoppuhr starten //swing worker einbauen //thread
+	req.setStart(true);
+	//Stop button setzen
+	//clear button setzen
     }//GEN-LAST:event_jButStartActionPerformed
 
     private void jButStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStopActionPerformed
-        
+        //Stopuhr anhalten
+	req.setStop(true);
     }//GEN-LAST:event_jButStopActionPerformed
 
     private void jButClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButClearActionPerformed
-        
+        //Stoppuhr auf 0 setzen
+	req.setClear(true);
     }//GEN-LAST:event_jButClearActionPerformed
 
     private void jButEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButEndActionPerformed
-        
+	//Server beenden
+	req.setEnd(true);
     }//GEN-LAST:event_jButEndActionPerformed
 
     /**
