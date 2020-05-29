@@ -22,11 +22,12 @@ public class Server {
     
     public void start(int port) throws IOException{
         serverSocket = new ServerSocket(port);
-	timeOffset = 0;
+	System.out.println("Server auf Port " + port + " gestartet!");
         
         while(true){ //damit nur 3 verbindungen gleichzeitig verbunden sind // eine vierte wird nicht zugelassen
             final Socket clientSocket = serverSocket.accept();
 	    synchronized(handlers) {
+		
 		if(handlers.size() < 3){ // prüfen ob 3 Verbindungen vorhanden
 		    final ConnectionHandler handler = new ConnectionHandler(clientSocket);
 		    new Thread(handler).start(); //hintergrund Thread
@@ -46,14 +47,18 @@ public class Server {
     }
     
     public boolean isTimerRunning(){
-        return startMillis > 0;
+        synchronized(handlers){
+	    return startMillis > 0;
+	}
     }
 
     public long getTimerMillis() {
-        if(startMillis == 0) {
-           return timeOffset;
-        }
-        return timeOffset + (System.currentTimeMillis() - startMillis); //aktuelle zeit
+	synchronized(handlers){
+	    if(startMillis == 0) {
+	       return timeOffset;
+	    }
+	    return timeOffset + (System.currentTimeMillis() - startMillis); //aktuelle zeit
+	}
     }
     
     public static void main(String[] args) throws IOException {
@@ -101,7 +106,7 @@ public class Server {
 		    Gson gson = new Gson(); 
 		    gson.toJson(line); // die einkommenden Zeilen werden in ein Object gespeichert
 		    final Request r = gson.fromJson(line, Request.class); //neues Request Object, welches die Zeichen beinhaltet
-		    System.out.println(r);
+		    //System.out.println(r);
 		    
 		   
 		    if(r.isMaster()) {
@@ -116,30 +121,29 @@ public class Server {
 			    }
 			}
 		    }
-
-		    if(this.master) {
-			//Respone objekt zurücksenden
-			if(r.isStart()) {
-			    startMillis = System.currentTimeMillis();
-			}
-			if(r.isClear()) {
-			    if(isTimerRunning()) {
+		    
+		    synchronized(handlers){
+			if(this.master) {
+			    //Respone objekt zurücksenden
+			    if(r.isStart()) {
 				startMillis = System.currentTimeMillis();
 			    }
-			    timeOffset = 0;
-			}
-			if(r.isStop()) {
-			    timeOffset = getTimerMillis();
-			    startMillis = 0;
-			}
-			if(r.isEnd()) {
-			    serverSocket.close(); 
-			    socket.close();
-			    synchronized(socket){
-				
+			    if(r.isClear()) {
+				if(isTimerRunning()) {
+				    startMillis = System.currentTimeMillis();
+				}
+				timeOffset = 0;
 			    }
-			    handlers.remove(this);
-			    return;
+			    if(r.isStop()) {
+				timeOffset = getTimerMillis();
+				startMillis = 0;
+			    }
+			    if(r.isEnd()) {
+				serverSocket.close(); 
+				socket.close();
+				handlers.remove(this);
+				return;
+			    }
 			}
 		    }
 		    
