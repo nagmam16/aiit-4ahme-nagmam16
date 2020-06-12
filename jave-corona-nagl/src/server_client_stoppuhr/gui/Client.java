@@ -1,4 +1,8 @@
-package server_client_stoppuhr;
+package server_client_stoppuhr.gui;
+
+import server_client_stoppuhr.Request;
+import server_client_stoppuhr.Response;
+import server_client_stoppuhr.Server;
 
 /**
  *
@@ -196,7 +200,7 @@ public class Client extends javax.swing.JFrame {
 
     private void jButConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButConnectionActionPerformed
         //Verbindung zu server herstellen
-	// if ( resppnse = master) { dann soll eine verbingun aufgebaut werden )
+	// if ( resppnse = master) { dann soll eine verbingun aufgebaut werden
 	Response res = new Response();
 	jButDisconnnect.setEnabled(false);
 	
@@ -212,7 +216,7 @@ public class Client extends javax.swing.JFrame {
     }//GEN-LAST:event_jButConnectionActionPerformed
 
     private void jButDisconnnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButDisconnnectActionPerformed
-        //Verbindug trennen
+        //Verbindung trennen
 	
 	jButClear.setEnabled(true);
 	jButDisconnnect.setEnabled(true);
@@ -223,6 +227,9 @@ public class Client extends javax.swing.JFrame {
 
     private void jButStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStartActionPerformed
 	//Stoppuhr starten //swing worker einbauen //thread
+	ConnnectionWorker worker = new ConnnectionWorker();
+	
+	
 	req.setStart(true);
 	//Stop button setzen
 	//clear button setzen

@@ -17,7 +17,7 @@ public class Response {
 	this.time = time;
     }
 
-    Response() {
+    public Response() {
     }
 
     
