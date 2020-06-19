@@ -1,5 +1,8 @@
 package server_client_stoppuhr.gui;
 
+import java.awt.Dimension;
+import java.io.IOException;
+import java.util.List;
 import server_client_stoppuhr.Request;
 import server_client_stoppuhr.Response;
 import server_client_stoppuhr.Server;
@@ -12,7 +15,7 @@ public class Client extends javax.swing.JFrame {
 
     Server server = new Server();
     Request req = new Request();
-    
+    MyConnectionWorker worker;
     /**
      * Creates new form Client
      */
@@ -21,14 +24,15 @@ public class Client extends javax.swing.JFrame {
 	
 	setTitle("PLF3- Stopwatch");
 	setLocationRelativeTo(this);
-	//setMinimumSize(400,400);
+	setMinimumSize(new Dimension(300,250));
+	setSize(400,300);
 	
-	jButClear.setEnabled(true);
-	jButDisconnnect.setEnabled(true);
-	jButStart.setEnabled(true);
-	jButStop.setEnabled(true);
-	jButEnd.setEnabled(true);
 	
+	jButClear.setEnabled(false);
+	jButDisconnnect.setEnabled(false);
+	jButStart.setEnabled(false);
+	jButStop.setEnabled(false);
+	jButEnd.setEnabled(false);
     }
 
     /**
@@ -201,53 +205,52 @@ public class Client extends javax.swing.JFrame {
     private void jButConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButConnectionActionPerformed
         //Verbindung zu server herstellen
 	// if ( resppnse = master) { dann soll eine verbingun aufgebaut werden
-	Response res = new Response();
-	jButDisconnnect.setEnabled(false);
+	//System.out.println("Button pressed " + Thread.currentThread());
 	
-	if (res.isMaster() == true){
-	    try {
-		server.start(8080);
-	    } catch (Exception ex) {
-		ex.printStackTrace();
-	    }
-	    jButStart.setEnabled(false);
-	    jButEnd.setEnabled(false);
+	try {
+	    worker = new MyConnectionWorker( this , 8080 );
+	    worker.execute();
+	    jButDisconnnect.setEnabled(true);
+	    jButConnection.setEnabled(false);
+	    jButStart.setEnabled(true);
+	} catch (Exception ex) {
+	    ex.printStackTrace();
 	}
     }//GEN-LAST:event_jButConnectionActionPerformed
 
     private void jButDisconnnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButDisconnnectActionPerformed
         //Verbindung trennen
 	
-	jButClear.setEnabled(true);
-	jButDisconnnect.setEnabled(true);
-	jButStart.setEnabled(true);
-	jButStop.setEnabled(true);
-	jButEnd.setEnabled(true);
+	jButClear.setEnabled(false);
+	jButDisconnnect.setEnabled(false);
+	jButStart.setEnabled(false);
+	jButStop.setEnabled(false);
+	jButEnd.setEnabled(false);
     }//GEN-LAST:event_jButDisconnnectActionPerformed
 
     private void jButStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStartActionPerformed
 	//Stoppuhr starten //swing worker einbauen //thread
-	ConnnectionWorker worker = new ConnnectionWorker();
+	//ConnectionWorker worker = new ConnectionWorker();
 	
 	
-	req.setStart(true);
-	//Stop button setzen
-	//clear button setzen
+	req.setStart(false);
+	jButStop.setEnabled(false);//Stop button setzen
+	jButClear.setEnabled(false);//clear button setzen
     }//GEN-LAST:event_jButStartActionPerformed
 
     private void jButStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButStopActionPerformed
         //Stopuhr anhalten
-	req.setStop(true);
+	req.setStop(false);
     }//GEN-LAST:event_jButStopActionPerformed
 
     private void jButClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButClearActionPerformed
         //Stoppuhr auf 0 setzen
-	req.setClear(true);
+	req.setClear(false);
     }//GEN-LAST:event_jButClearActionPerformed
 
     private void jButEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButEndActionPerformed
 	//Server beenden
-	req.setEnd(true);
+	req.setEnd(false);
     }//GEN-LAST:event_jButEndActionPerformed
 
     /**
@@ -301,4 +304,20 @@ public class Client extends javax.swing.JFrame {
     private javax.swing.JLabel jlab1ms;
     private javax.swing.JLabel jlabRefreshrate;
     // End of variables declaration//GEN-END:variables
+
+    public void handleResponse(Response resp) {
+   
+    }
+
+    private class MyConnectionWorker extends ConnectionWorker {
+
+	public MyConnectionWorker(Client gui, int port) throws IOException {
+	    super(gui, port);
+	}
+
+	@Override
+	protected void process(List<Response> list) {
+	    super.process(list); //To change body of generated methods, choose Tools | Templates.
+	}
+    }
 }
