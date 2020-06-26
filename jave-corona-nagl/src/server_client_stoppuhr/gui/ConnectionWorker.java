@@ -1,31 +1,27 @@
 package server_client_stoppuhr.gui;
 
+import com.google.gson.Gson;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
 import javax.swing.SwingWorker;
+import server_client_stoppuhr.Request;
 import server_client_stoppuhr.Response;
 
 /**
  *
  * @author user
  */
-public class ConnectionWorker extends SwingWorker< Object, Response> { // Rückgabewert von doinBackground , Wert welcher zwsichen druch übermittelt wird
-    private Socket socket; 
-    private server_client_stoppuhr.gui.Client gui;
 
-    public ConnectionWorker(server_client_stoppuhr.gui.Client gui, int port) throws IOException {
-	socket = new Socket("127.0.0.1", port);
-	this.gui = gui;
-    }
-    
-    @Override
-    protected Object doInBackground() throws Exception {
-	while(true) {
-	    Response resp = null;
-	    publish(resp);
-	}
-    }
+//Durch die Klasse Swingworker können laufende Prozesse, 
+//die die Oberfläche beeinflussen im Hintergrund laufen, dass die Oberfläche weiterhin normal benutzt werden kann
+
+public class ConnectionWorker extends SwingWorker< String, Response> { // Rückgabewert von doinBackground , Wert welcher zwsichen druch übermittelt wird
+    Socket socket; 
+    private server_client_stoppuhr.gui.Client gui;
     
     @Override
     protected void process(List<Response> list) {
@@ -45,4 +41,10 @@ public class ConnectionWorker extends SwingWorker< Object, Response> { // Rückg
 	    ex.printStackTrace();
 	}*/
     }
+
+    @Override
+    protected String doInBackground() throws Exception {
+	throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

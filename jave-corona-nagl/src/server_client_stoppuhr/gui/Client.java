@@ -1,7 +1,12 @@
 package server_client_stoppuhr.gui;
 
+import com.google.gson.Gson;
 import java.awt.Dimension;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 import java.util.List;
 import server_client_stoppuhr.Request;
 import server_client_stoppuhr.Response;
@@ -13,9 +18,9 @@ import server_client_stoppuhr.Server;
  */
 public class Client extends javax.swing.JFrame {
 
-    Server server = new Server();
-    Request req = new Request();
-    MyConnectionWorker worker;
+    private Server server = new Server();
+    private Request req = new Request();
+    private MyConnectionWorker worker;
     /**
      * Creates new form Client
      */
@@ -208,7 +213,7 @@ public class Client extends javax.swing.JFrame {
 	//System.out.println("Button pressed " + Thread.currentThread());
 	
 	try {
-	    worker = new MyConnectionWorker( this , 8080 );
+	    worker = new MyConnectionWorker( "127.0.0.1" , 8080 );
 	    worker.execute();
 	    jButDisconnnect.setEnabled(true);
 	    jButConnection.setEnabled(false);
@@ -310,14 +315,52 @@ public class Client extends javax.swing.JFrame {
     }
 
     private class MyConnectionWorker extends ConnectionWorker {
+	private Response resp;
+	private Socket socket;
+	
+	
+	public MyConnectionWorker(String host, int port) throws IOException {
+	    socket = new Socket(host ,port);
+	}
+	
+	@Override
+	protected String doInBackground() throws Exception {//hintergrund arbeiten // damit ich leichter auf die gui zugreifen kann
+	    final Gson g = new Gson();//gson objekt
+	    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));//herauslesenn
+	    final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());//hineinschrieben
+	
+	    while(true) {
+		try {
+		    final Request req = new Request();
+		    final String reqString = g.toJson(req);
+		    writer.write(reqString);
+		    writer.flush();
 
-	public MyConnectionWorker(Client gui, int port) throws IOException {
-	    super(gui, port);
+		    final String respString = reader.readLine();
+		    final Response resp = g.fromJson(respString, Response.class);
+		    publish(resp);
+		} catch (Exception ex) {
+		    ex.printStackTrace();
+		}
+	    }
 	}
 
 	@Override
 	protected void process(List<Response> list) {
-	    super.process(list); //To change body of generated methods, choose Tools | Templates.
+	    Response resp = list.get(0);
+	    
+	    if(resp.isMaster()){
+		jButConnection.setEnabled(false);
+		jButClear.setEnabled(true);
+		jButDisconnnect.setEnabled(true);
+		jButStart.setEnabled(true);
+		jButStop.setEnabled(true);
+		jButEnd.setEnabled(true);
+	    }
+	    
+	    if(resp.isRunning()){
+		jLabTime.setText(String.format("%.3f", resp.getTime()));
+	    }
 	}
     }
 }
