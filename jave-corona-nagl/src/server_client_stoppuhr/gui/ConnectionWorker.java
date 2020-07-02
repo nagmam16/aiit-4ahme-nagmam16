@@ -1,8 +1,8 @@
 package server_client_stoppuhr.gui;
 
+
 import com.google.gson.Gson;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
@@ -42,9 +42,26 @@ public class ConnectionWorker extends SwingWorker< String, Response> { // Rückg
 	}*/
     }
 
-    @Override
-    protected String doInBackground() throws Exception {
-	throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+   @Override
+	protected String doInBackground() throws Exception {//hintergrund arbeiten // damit ich leichter auf die gui zugreifen kann
+	    final Gson g = new Gson();//gson objekt
+	    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));//herauslesenn
+	    final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());//hineinschrieben
+	
+	    while(true) {
+		try {
+		    final Request req = new Request();
+		    final String reqString = g.toJson(req);
+		    writer.write(reqString);
+		    writer.flush();
+
+		    final String respString = reader.readLine();
+		    final Response resp = g.fromJson(respString, Response.class);
+		    publish(resp);
+		} catch (Exception ex) {
+		    ex.printStackTrace();
+		}
+	    }
+	}
 
 }

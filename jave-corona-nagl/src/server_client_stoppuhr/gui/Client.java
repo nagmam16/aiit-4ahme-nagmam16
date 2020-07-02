@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
+import javax.swing.JOptionPane;
 import server_client_stoppuhr.Request;
 import server_client_stoppuhr.Response;
 import server_client_stoppuhr.Server;
@@ -219,7 +220,7 @@ public class Client extends javax.swing.JFrame {
 	    jButConnection.setEnabled(false);
 	    jButStart.setEnabled(true);
 	} catch (Exception ex) {
-	    ex.printStackTrace();
+	    JOptionPane.showMessageDialog(this,"Fehler","Verbindung mit Server fehlgeschlagen", JOptionPane.ERROR_MESSAGE);
 	}
     }//GEN-LAST:event_jButConnectionActionPerformed
 
@@ -322,45 +323,53 @@ public class Client extends javax.swing.JFrame {
 	public MyConnectionWorker(String host, int port) throws IOException {
 	    socket = new Socket(host ,port);
 	}
-	
-	@Override
-	protected String doInBackground() throws Exception {//hintergrund arbeiten // damit ich leichter auf die gui zugreifen kann
-	    final Gson g = new Gson();//gson objekt
-	    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));//herauslesenn
-	    final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());//hineinschrieben
-	
-	    while(true) {
-		try {
-		    final Request req = new Request();
-		    final String reqString = g.toJson(req);
-		    writer.write(reqString);
-		    writer.flush();
 
-		    final String respString = reader.readLine();
-		    final Response resp = g.fromJson(respString, Response.class);
-		    publish(resp);
-		} catch (Exception ex) {
-		    ex.printStackTrace();
-		}
+	@Override
+	protected void done() {
+	    try {
+		//super.done();
+		String ergebnis = (String) get();
+		System.out.println(ergebnis);
+	    } catch (Exception ex) {
+		ex.printStackTrace();
+		JOptionPane.showMessageDialog(Client.this,"Fehler","Fehler beim Beenden", JOptionPane.ERROR_MESSAGE);	
 	    }
 	}
 
+	
+	
 	@Override
 	protected void process(List<Response> list) {
-	    Response resp = list.get(0);
-	    
-	    if(resp.isMaster()){
-		jButConnection.setEnabled(false);
-		jButClear.setEnabled(true);
-		jButDisconnnect.setEnabled(true);
-		jButStart.setEnabled(true);
-		jButStop.setEnabled(true);
-		jButEnd.setEnabled(true);
+	    for(Response x : list){
+		System.out.println("Process " + x + " Thread" +Thread.currentThread().getId());
+		
+		if(resp.isMaster()){
+		    jButConnection.setEnabled(false);
+		    jButClear.setEnabled(true);
+		    jButDisconnnect.setEnabled(true);
+		    jButStart.setEnabled(true);
+		    jButStop.setEnabled(true);
+		    jButEnd.setEnabled(true);
+		} else {
+		    jButConnection.setEnabled(false);
+		    jButClear.setEnabled(false);
+		    jButDisconnnect.setEnabled(true);
+		    jButStart.setEnabled(false);
+		    jButStop.setEnabled(false);
+		    jButEnd.setEnabled(false);
+		}
 	    }
-	    
+
 	    if(resp.isRunning()){
-		jLabTime.setText(String.format("%.3f", resp.getTime()));
+		jButClear.setEnabled(true);
+	        jButStart.setEnabled(false);
+		jButStop.setEnabled(true);
+	    } else {
+		jButClear.setEnabled(false);
+	        jButStart.setEnabled(true);
+		jButStop.setEnabled(false);
 	    }
+	    jLabTime.setText(String.format("%.3f", resp.getTime()));
 	}
     }
 }
